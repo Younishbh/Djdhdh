@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>موقعي الدراسي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --navy: #0d1b2a;
+    --blue: #1a3a5c;
+    --accent: #2e86ab;
+    --gold: #f4a261;
+    --emerald: #2ec4b6;
+    --rose: #e84855;
+    --violet: #7b2d8b;
+    --text: #1a1a2e;
+    --text-light: #5a6a7a;
+    --bg: #f0f4f8;
+    --card: #ffffff;
+    --border: #e0e8f0;
+    --shadow: 0 4px 24px rgba(13,27,42,0.08);
+    --shadow-hover: 0 12px 40px rgba(13,27,42,0.15);
+    --radius: 16px;
+    --transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    font-family: 'Tajawal', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ========== SIDEBAR ========== */
+  .sidebar {
+    position: fixed;
+    right: 0; top: 0; bottom: 0;
+    width: 260px;
+    background: linear-gradient(180deg, var(--navy) 0%, var(--blue) 100%);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .sidebar::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(46,134,171,0.3) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .logo-area {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+  }
+
+  .logo-icon {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--accent), var(--emerald));
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+    box-shadow: 0 6px 20px rgba(46,134,171,0.4);
+  }
+
+  .logo-text {
+    color: white;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  .logo-sub {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    margin-top: 3px;
+    font-weight: 300;
+  }
+
+  /* Student info card */
+  .student-card {
+    margin: 16px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 14px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .student-avatar {
+    width: 42px; height: 42px;
+    background: linear-gradient(135deg, var(--gold), #e08d4c);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+
+  .student-name {
+    color: white;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .student-grade {
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    margin-top: 2px;
+  }
+
+  /* Nav */
+  .nav-section {
+    padding: 10px 12px 4px;
+    color: rgba(255,255,255,0.3);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 16px;
+    margin: 2px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: var(--transition);
+    color: rgba(255,255,255,0.65);
+    font-size: 13.5px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nav-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: white;
+  }
+
+  .nav-item.active {
+    background: linear-gradient(135deg, var(--accent), #1e6f8e);
+    color: white;
+    box-shadow: 0 4px 15px rgba(46,134,171,0.4);
+  }
+
+  .nav-item .icon {
+    font-size: 18px;
+    min-width: 22px;
+    text-align: center;
+  }
+
+  .nav-badge {
+    margin-right: auto;
+    background: var(--rose);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .nav-badge.green { background: var(--emerald); }
+  .nav-badge.gold { background: var(--gold); color: var(--navy); }
+
+  /* Import section */
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .upload-btn {
+    width: 100%;
+    background: rgba(244,162,97,0.15);
+    border: 1px dashed rgba(244,162,97,0.5);
+    color: var(--gold);
+    padding: 10px;
+    border-radius: 10px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  .upload-btn:hover {
+    background: rgba(244,162,97,0.25);
+    border-color: var(--gold);
+  }
+
+  #excel-input { display: none; }
+
+  /* ========== MAIN CONTENT ========== */
+  .main {
+    margin-right: 260px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Topbar */
+  .topbar {
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+  }
+
+  .page-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+  }
+
+  .topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .date-chip {
+    background: var(--bg);
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 500;
+    border: 1px solid var(--border);
+  }
+
+  .refresh-btn {
+    background: linear-gradient(135deg, var(--accent), #1e6f8e);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .refresh-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(46,134,171,0.35); }
+
+  /* Content area */
+  .content {
+    padding: 28px 32px;
+    flex: 1;
+  }
+
+  /* Sections */
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn 0.4s ease; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ========== DASHBOARD ========== */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    transition: var(--transition);
+  }
+
+  .stat-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    opacity: 0.08;
+    transform: translate(20px, 20px);
+  }
+
+  .stat-card.blue::after { background: var(--accent); }
+  .stat-card.gold::after { background: var(--gold); }
+  .stat-card.emerald::after { background: var(--emerald); }
+  .stat-card.rose::after { background: var(--rose); }
+
+  .stat-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+
+  .stat-value {
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-card.blue .stat-value { color: var(--accent); }
+  .stat-card.gold .stat-value { color: #d4872a; }
+  .stat-card.emerald .stat-value { color: #1fa098; }
+  .stat-card.rose .stat-value { color: var(--rose); }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-light);
+    font-weight: 500;
+  }
+
+  /* Dashboard grid */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+
+  .dash-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+  }
+
+  .dash-card-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Progress bars */
+  .subject-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .subject-bar-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--bg);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 1s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .bar-pct {
+    font-size: 12px;
+    font-weight: 700;
+    min-width: 36px;
+    text-align: left;
+  }
+
+  /* Today schedule */
+  .today-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .today-item:last-child { border-bottom: none; }
+
+  .today-time {
+    font-size: 11px;
+    color: var(--text-light);
+    min-width: 80px;
+    text-align: right;
+    font-weight: 500;
+  }
+
+  .today-subject {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .today-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ========== TABLE STYLES ========== */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+
+  .filter-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text-light);
+    padding: 7px 16px;
+    border-radius: 20px;
+    font-family: 'Tajawal', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .filter-btn.active, .filter-btn:hover {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  .table-wrap {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  thead tr {
+    background: linear-gradient(135deg, var(--navy), var(--blue));
+  }
+
+  thead th {
+    padding: 14px 16px;
+    text-align: right;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: var(--transition);
+  }
+
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(46,134,171,0.04); }
+
+  td {
+    padding: 13px 16px;
+    font-size: 13px;
+    color: var(--text);
+    vertical-align: middle;
+  }
+
+  /* Subject badge */
+  .subject-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* Status badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .badge.success { background: #e8f8f0; color: #1fa864; }
+  .badge.warning { background: #fff8e6; color: #d4872a; }
+  .badge.danger { background: #ffeaea; color: var(--rose); }
+  .badge.info { background: #e8f3fd; color: var(--accent); }
+
+  /* Grade display */
+  .grade-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .grade-excellent { background: #e8f8f0; color: #1fa864; }
+  .grade-very-good { background: #e8f3fd; color: var(--accent); }
+  .grade-good { background: #fff8e6; color: #d4872a; }
+  .grade-pass { background: #fff3e6; color: #e06c00; }
+  .grade-fail { background: #ffeaea; color: var(--rose); }
+
+  /* ========== SCHEDULE GRID ========== */
+  .schedule-wrap {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .schedule-wrap table thead th {
+    padding: 16px 12px;
+  }
+
+  .schedule-cell {
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 16px 10px !important;
+  }
+
+  .schedule-subject {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .break-row td {
+    background: linear-gradient(90deg, #fff8e6, #fffbf0);
+    text-align: center;
+    color: #d4872a;
+    font-weight: 700;
+    font-size: 12px;
+    padding: 8px !important;
+  }
+
+  /* Subject color map */
+  .s-math { background: #e8f3fd; color: #1a5fa8; }
+  .s-arabic { background: #ffedf5; color: #c0357a; }
+  .s-science { background: #e8f8f0; color: #1fa864; }
+  .s-english { background: #ede8fd; color: #6938c0; }
+  .s-studies { background: #fff8e6; color: #d4872a; }
+  .s-pe { background: #ffeaea; color: var(--rose); }
+  .s-art { background: #e8f9fd; color: #0891b2; }
+  .s-empty { background: transparent; color: #ccc; }
+
+  /* ========== NOTIFICATIONS ========== */
+  .notif-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .notif-item {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    box-shadow: var(--shadow);
+    border-right: 4px solid var(--border);
+    transition: var(--transition);
+  }
+
+  .notif-item:hover { transform: translateX(-4px); }
+  .notif-item.urgent { border-right-color: var(--rose); }
+  .notif-item.info { border-right-color: var(--accent); }
+  .notif-item.success { border-right-color: var(--emerald); }
+
+  .notif-icon {
+    font-size: 22px;
+    min-width: 30px;
+  }
+
+  .notif-content { flex: 1; }
+  .notif-title { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .notif-desc { font-size: 12px; color: var(--text-light); line-height: 1.5; }
+  .notif-time { font-size: 11px; color: var(--text-light); margin-top: 5px; font-weight: 500; }
+
+  /* ========== PROGRESS SECTION ========== */
+  .progress-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+
+  .progress-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: var(--transition);
+  }
+
+  .progress-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+
+  .progress-ring-wrap {
+    position: relative;
+    width: 90px; height: 90px;
+    margin: 0 auto 14px;
+  }
+
+  .progress-ring { transform: rotate(-90deg); }
+
+  .ring-bg { fill: none; stroke: var(--bg); stroke-width: 8; }
+  .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+  .ring-label {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--navy);
+  }
+
+  .progress-subject { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .progress-detail { font-size: 11px; color: var(--text-light); }
+
+  /* ========== ALERT / TOAST ========== */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 30px;
+    background: var(--navy);
+    color: white;
+    padding: 14px 22px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .toast.show {
+    transform: translateY(0);
+    opacity: 1;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+  }
+
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; opacity: 0.5; }
+  .empty-state p { font-size: 14px; font-weight: 500; }
+
+  /* ========== RESPONSIVE ========== */
+  @media (max-width: 1100px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .progress-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .sidebar { width: 220px; }
+    .main { margin-right: 220px; }
+    .dash-grid { grid-template-columns: 1fr; }
+    .content { padding: 20px 16px; }
+    .topbar { padding: 12px 16px; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .loading-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(13,27,42,0.6);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .loading-overlay.show { display: flex; }
+
+  .loading-box {
+    background: white;
+    border-radius: 20px;
+    padding: 32px 40px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+
+  .spinner {
+    width: 48px; height: 48px;
+    border: 4px solid var(--bg);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+  .loading-sub { font-size: 12px; color: var(--text-light); }
+
+  /* Exam result cells */
+  .pct-bar {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .pct-track {
+    flex: 1; height: 6px; background: var(--bg); border-radius: 3px; overflow: hidden;
+  }
+  .pct-fill { height: 100%; border-radius: 3px; }
+  .pct-num { font-size: 12px; font-weight: 700; min-width: 36px; }
+</style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-box">
+    <div class="spinner"></div>
+    <div class="loading-text">جاري تحميل بيانات Excel...</div>
+    <div class="loading-sub">يرجى الانتظار لحظة</div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">تم التحديث بنجاح</span>
+</div>
+
+<!-- ========== SIDEBAR ========== -->
+<aside class="sidebar">
+  <div class="logo-area">
+    <div class="logo-icon">🎓</div>
+    <div class="logo-text">موقعي الدراسي</div>
+    <div class="logo-sub">نظام إدارة التعلم الشخصي</div>
+  </div>
+
+  <div class="student-card">
+    <div class="student-avatar">👤</div>
+    <div class="student-name" id="sidebar-name">محمد عبدالله الأحمدي</div>
+    <div class="student-grade" id="sidebar-grade">الأول المتوسط • الفصل الأول</div>
+  </div>
+
+  <div class="nav-section">القائمة الرئيسية</div>
+
+  <div class="nav-item active" onclick="showSection('dashboard')">
+    <span class="icon">🏠</span>
+    <span>الرئيسية</span>
+  </div>
+  <div class="nav-item" onclick="showSection('schedule')">
+    <span class="icon">📅</span>
+    <span>جدول الحصص</span>
+  </div>
+  <div class="nav-item" onclick="showSection('subjects')">
+    <span class="icon">📚</span>
+    <span>المواد والدروس</span>
+    <span class="nav-badge green" id="badge-subjects">10</span>
+  </div>
+  <div class="nav-item" onclick="showSection('homeworks')">
+    <span class="icon">📝</span>
+    <span>الواجبات والمهام</span>
+    <span class="nav-badge" id="badge-hw">2</span>
+  </div>
+  <div class="nav-item" onclick="showSection('exams')">
+    <span class="icon">🏆</span>
+    <span>الاختبارات والنتائج</span>
+    <span class="nav-badge gold" id="badge-exams">8</span>
+  </div>
+  <div class="nav-item" onclick="showSection('progress')">
+    <span class="icon">📊</span>
+    <span>تقرير الأداء</span>
+  </div>
+
+  <div class="nav-section">أدوات</div>
+  <div class="nav-item" onclick="document.getElementById('excel-input').click()">
+    <span class="icon">📂</span>
+    <span>استيراد Excel</span>
+  </div>
+
+  <div class="sidebar-footer">
+    <label class="upload-btn" for="excel-input">
+      <span>⬆️</span>
+      <span>رفع ملف البيانات</span>
+    </label>
+    <input type="file" id="excel-input" accept=".xlsx,.xls" onchange="loadExcel(this)">
+    <div style="color:rgba(255,255,255,0.3);font-size:10px;text-align:center;margin-top:8px;">
+      ارفع ملف بيانات_دراسية.xlsx
+    </div>
+  </div>
+</aside>
+
+<!-- ========== MAIN ========== -->
+<main class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div class="page-title" id="page-title">🏠 الرئيسية</div>
+    <div class="topbar-actions">
+      <div class="date-chip" id="current-date">—</div>
+      <button class="refresh-btn" onclick="document.getElementById('excel-input').click()">
+        ⬆️ تحديث البيانات
+      </button>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ===== DASHBOARD ===== -->
+    <div class="section active" id="sec-dashboard">
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-icon">📚</div>
+          <div class="stat-value" id="stat-subjects">10</div>
+          <div class="stat-label">إجمالي الدروس</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-icon">📝</div>
+          <div class="stat-value" id="stat-hw-pending">2</div>
+          <div class="stat-label">واجبات لم تُسلَّم</div>
+        </div>
+        <div class="stat-card emerald">
+          <div class="stat-icon">✅</div>
+          <div class="stat-value" id="stat-hw-done">2</div>
+          <div class="stat-label">واجبات مُسلَّمة</div>
+        </div>
+        <div class="stat-card rose">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-value" id="stat-avg">83%</div>
+          <div class="stat-label">متوسط الدرجات</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-card-title">📅 حصص اليوم</div>
+          <div id="today-schedule">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">📊 الأداء لكل مادة</div>
+          <div id="subject-performance">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="dash-card-title">📝 آخر الواجبات</div>
+          <div id="recent-hw"></div>
+        </div>
+        <div class="dash-card">
+          <div class="dash-card-title">🏆 آخر الاختبارات</div>
+          <div id="recent-exams"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== SCHEDULE ===== -->
+    <div class="section" id="sec-schedule">
+      <div class="section-header">
+        <div class="section-title">📅 جدول الحصص الأسبوعي</div>
+      </div>
+      <div class="schedule-wrap">
+        <table id="schedule-table">
+          <thead>
+            <tr>
+              <th>الحصة</th>
+              <th>الأحد</th>
+              <th>الاثنين</th>
+              <th>الثلاثاء</th>
+              <th>الأربعاء</th>
+              <th>الخميس</th>
+              <th>الوقت</th>
+            </tr>
+          </thead>
+          <tbody id="schedule-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== SUBJECTS ===== -->
+    <div class="section" id="sec-subjects">
+      <div class="section-header">
+        <div class="section-title">📚 المواد والدروس</div>
+      </div>
+      <div class="filters" id="subject-filters"></div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المادة</th>
+              <th>الدرس</th>
+              <th>الوحدة</th>
+              <th>المعلم</th>
+              <th>الملف</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody id="subjects-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== HOMEWORKS ===== -->
+    <div class="section" id="sec-homeworks">
+      <div class="section-header">
+        <div class="section-title">📝 الواجبات والمهام</div>
+      </div>
+      <div class="filters">
+        <button class="filter-btn active" onclick="filterHW('all', this)">الكل</button>
+        <button class="filter-btn" onclick="filterHW('مسلم', this)">مُسلَّم ✅</button>
+        <button class="filter-btn" onclick="filterHW('قيد', this)">قيد التنفيذ 🔄</button>
+        <button class="filter-btn" onclick="filterHW('لم', this)">لم يُسلَّم ❌</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المادة</th>
+              <th>الواجب</th>
+              <th>تاريخ التكليف</th>
+              <th>تاريخ التسليم</th>
+              <th>الدرجة</th>
+              <th>الحالة</th>
+              <th>ملاحظات المعلم</th>
+            </tr>
+          </thead>
+          <tbody id="hw-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== EXAMS ===== -->
+    <div class="section" id="sec-exams">
+      <div class="section-header">
+        <div class="section-title">🏆 الاختبارات والنتائج</div>
+      </div>
+      <div class="filters" id="exam-filters">
+        <button class="filter-btn active" onclick="filterExams('all', this)">الكل</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>المادة</th>
+              <th>نوع الاختبار</th>
+              <th>التاريخ</th>
+              <th>الدرجة الكاملة</th>
+              <th>درجة الطالب</th>
+              <th>النسبة</th>
+              <th>التقدير</th>
+              <th>ملاحظات</th>
+            </tr>
+          </thead>
+          <tbody id="exams-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== PROGRESS ===== -->
+    <div class="section" id="sec-progress">
+      <div class="section-title" style="margin-bottom:20px">📊 تقرير الأداء الأكاديمي</div>
+      <div class="progress-grid" id="progress-grid"></div>
+
+      <!-- Summary table -->
+      <div class="dash-card" style="margin-top:10px">
+        <div class="dash-card-title">📋 ملخص الدرجات حسب المادة</div>
+        <div class="table-wrap" style="box-shadow:none;margin-top:12px">
+          <table>
+            <thead>
+              <tr>
+                <th>المادة</th>
+                <th>عدد الاختبارات</th>
+                <th>مجموع الدرجات</th>
+                <th>المجموع الكامل</th>
+                <th>النسبة الكلية</th>
+                <th>التقدير</th>
+              </tr>
+            </thead>
+            <tbody id="summary-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+let appData = {
+  student: {
+    name: 'محمد عبدالله الأحمدي',
+    grade: 'الأول المتوسط',
+    term: 'الأول',
+    school: 'مدرسة النموذج',
+    year: '2025-2026'
+  },
+  schedule: [
+    {period:1, sun:'رياضيات', mon:'عربي', tue:'علوم', wed:'انجليزي', thu:'دراسات', from:'07:30', to:'08:15', note:''},
+    {period:2, sun:'علوم', mon:'رياضيات', tue:'انجليزي', wed:'عربي', thu:'رياضيات', from:'08:15', to:'09:00', note:''},
+    {period:3, sun:'انجليزي', mon:'دراسات', tue:'رياضيات', wed:'علوم', thu:'تربية', from:'09:00', to:'09:45', note:''},
+    {period:'break', sun:'', mon:'', tue:'', wed:'', thu:'', from:'09:45', to:'10:00', note:'استراحة'},
+    {period:4, sun:'عربي', mon:'علوم', tue:'دراسات', wed:'رياضيات', thu:'انجليزي', from:'10:00', to:'10:45', note:''},
+    {period:5, sun:'دراسات', mon:'انجليزي', tue:'عربي', wed:'تربية', thu:'علوم', from:'10:45', to:'11:30', note:''},
+    {period:6, sun:'تربية', mon:'فن', tue:'فن', wed:'دراسات', thu:'عربي', from:'11:30', to:'12:15', note:''},
+  ],
+  subjects: [
+    {subject:'رياضيات', lesson:'الأعداد الصحيحة', unit:'الوحدة الأولى', grade:'الأول المتوسط', teacher:'أ. محمد العمر', file:'رياضيات_درس1.pdf', note:''},
+    {subject:'رياضيات', lesson:'العمليات الحسابية', unit:'الوحدة الأولى', grade:'الأول المتوسط', teacher:'أ. محمد العمر', file:'رياضيات_درس2.pdf', note:''},
+    {subject:'رياضيات', lesson:'المعادلات', unit:'الوحدة الثانية', grade:'الأول المتوسط', teacher:'أ. محمد العمر', file:'رياضيات_درس3.pdf', note:''},
+    {subject:'عربي', lesson:'القراءة والفهم', unit:'الوحدة الأولى', grade:'الأول المتوسط', teacher:'أ. نورة السالم', file:'عربي_درس1.pdf', note:''},
+    {subject:'عربي', lesson:'النحو والصرف', unit:'الوحدة الأولى', grade:'الأول المتوسط', teacher:'أ. نورة السالم', file:'عربي_درس2.pdf', note:''},
+    {subject:'علوم', lesson:'الخلية الحية', unit:'الوحدة الأولى', grade:'الأول المتوسط', teacher:'أ. سارة الزهراني', file:'علوم_درس1.pdf', note:''},
+    {subject:'علوم', lesson:'التكاثر', unit:'الوحدة الثانية', grade:'الأول المتوسط', teacher:'أ. سارة الزهراني', file:'علوم_درس2.pdf', note:''},
+    {subject:'انجليزي', lesson:'Unit 1: Hello', unit:'Unit 1', grade:'الأول المتوسط', teacher:'أ. أحمد خليل', file:'english_lesson1.pdf', note:''},
+    {subject:'انجليزي', lesson:'Unit 2: School', unit:'Unit 2', grade:'الأول المتوسط', teacher:'أ. أحمد خليل', file:'english_lesson2.pdf', note:''},
+    {subject:'دراسات', lesson:'الجزيرة العربية', unit:'الوحدة الأولى', grade:'الأول المتوسط', teacher:'أ. فهد القحطاني', file:'دراسات_درس1.pdf', note:''},
+  ],
+  homeworks: [
+    {subject:'رياضيات', title:'حل تمارين الأعداد ص 15-18', assigned:'2025/09/01', due:'2025/09/03', score:10, status:'مسلم', teacherNote:'', studentNote:''},
+    {subject:'عربي', title:'قراءة النص وتلخيصه', assigned:'2025/09/02', due:'2025/09/05', score:10, status:'مسلم', teacherNote:'ممتاز', studentNote:''},
+    {subject:'علوم', title:'رسم خلية نباتية', assigned:'2025/09/03', due:'2025/09/07', score:15, status:'قيد التنفيذ', teacherNote:'', studentNote:''},
+    {subject:'انجليزي', title:'Vocabulary Exercise P.10', assigned:'2025/09/04', due:'2025/09/08', score:10, status:'لم يسلم', teacherNote:'الرجاء التسليم', studentNote:''},
+    {subject:'دراسات', title:'بحث عن الجزيرة العربية', assigned:'2025/09/05', due:'2025/09/12', score:20, status:'قيد التنفيذ', teacherNote:'', studentNote:''},
+    {subject:'رياضيات', title:'تمارين المعادلات ص 25', assigned:'2025/09/08', due:'2025/09/10', score:10, status:'لم يسلم', teacherNote:'', studentNote:''},
+  ],
+  exams: [
+    {subject:'رياضيات', type:'اختبار شهري', date:'2025/09/20', total:20, score:17, note:''},
+    {subject:'عربي', type:'اختبار شهري', date:'2025/09/21', total:20, score:19, note:''},
+    {subject:'علوم', type:'اختبار شهري', date:'2025/09/22', total:20, score:15, note:''},
+    {subject:'انجليزي', type:'اختبار شهري', date:'2025/09/23', total:20, score:18, note:''},
+    {subject:'دراسات', type:'اختبار شهري', date:'2025/09/24', total:20, score:14, note:''},
+    {subject:'رياضيات', type:'اختبار نصفي', date:'2025/11/01', total:50, score:42, note:''},
+    {subject:'عربي', type:'اختبار نصفي', date:'2025/11/02', total:50, score:45, note:''},
+    {subject:'علوم', type:'اختبار نصفي', date:'2025/11/03', total:50, score:38, note:''},
+  ]
+};
+
+// Subject color map
+const subjectColors = {
+  'رياضيات': 's-math',
+  'عربي': 's-arabic',
+  'علوم': 's-science',
+  'انجليزي': 's-english',
+  'english': 's-english',
+  'دراسات': 's-studies',
+  'تربية': 's-pe',
+  'فن': 's-art',
+};
+
+function getSubjectClass(name) {
+  if (!name) return 's-empty';
+  const n = name.toLowerCase();
+  for (const [key, cls] of Object.entries(subjectColors)) {
+    if (n.includes(key.toLowerCase())) return cls;
+  }
+  return 's-studies';
+}
+
+function getGrade(pct) {
+  if (pct >= 90) return {label:'ممتاز', cls:'grade-excellent'};
+  if (pct >= 80) return {label:'جيد جداً', cls:'grade-very-good'};
+  if (pct >= 70) return {label:'جيد', cls:'grade-good'};
+  if (pct >= 60) return {label:'مقبول', cls:'grade-pass'};
+  return {label:'راسب', cls:'grade-fail'};
+}
+
+function getGradeColor(pct) {
+  if (pct >= 90) return '#1fa864';
+  if (pct >= 80) return '#2e86ab';
+  if (pct >= 70) return '#d4872a';
+  if (pct >= 60) return '#e06c00';
+  return '#e84855';
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+const titles = {
+  dashboard: '🏠 الرئيسية',
+  schedule: '📅 جدول الحصص',
+  subjects: '📚 المواد والدروس',
+  homeworks: '📝 الواجبات والمهام',
+  exams: '🏆 الاختبارات والنتائج',
+  progress: '📊 تقرير الأداء',
+};
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick') && n.getAttribute('onclick').includes(id)) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = titles[id] || '';
+  renderSection(id);
+}
+
+function renderSection(id) {
+  if (id === 'dashboard') renderDashboard();
+  else if (id === 'schedule') renderSchedule();
+  else if (id === 'subjects') renderSubjects();
+  else if (id === 'homeworks') renderHomeworks('all');
+  else if (id === 'exams') renderExams('all');
+  else if (id === 'progress') renderProgress();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const hw = appData.homeworks;
+  const pending = hw.filter(h => h.status.includes('لم')).length;
+  const done = hw.filter(h => h.status.includes('مسلم')).length;
+  const exams = appData.exams;
+  const avg = exams.length ? Math.round(exams.reduce((s,e) => s + (e.score/e.total*100),0) / exams.length) : 0;
+
+  document.getElementById('stat-subjects').textContent = appData.subjects.length;
+  document.getElementById('stat-hw-pending').textContent = pending;
+  document.getElementById('stat-hw-done').textContent = done;
+  document.getElementById('stat-avg').textContent = avg + '%';
+  document.getElementById('badge-subjects').textContent = appData.subjects.length;
+  document.getElementById('badge-hw').textContent = pending;
+  document.getElementById('badge-exams').textContent = exams.length;
+
+  // Today's schedule (Sunday=0, Mon=1, Tue=2, Wed=3, Thu=4)
+  const dayMap = {0:'sun', 1:'mon', 2:'tue', 3:'wed', 4:'thu', 5:null, 6:null};
+  const today = new Date().getDay();
+  const todayKey = dayMap[today];
+  const todayEl = document.getElementById('today-schedule');
+  const dotColors = ['#2e86ab','#e84855','#1fa864','#6938c0','#d4872a','#0891b2','#c0357a'];
+
+  if (!todayKey) {
+    todayEl.innerHTML = '<div class="empty-state"><div class="icon">🌙</div><p>لا توجد حصص اليوم — استمتع بعطلتك!</p></div>';
+  } else {
+    const rows = appData.schedule.filter(r => r.period !== 'break' && r[todayKey]);
+    todayEl.innerHTML = rows.map((r, i) => `
+      <div class="today-item">
+        <div class="today-time">${r.from} – ${r.to}</div>
+        <div class="today-dot" style="background:${dotColors[i % dotColors.length]}"></div>
+        <div class="today-subject">${r[todayKey]}</div>
+        <span class="subject-badge ${getSubjectClass(r[todayKey])}" style="font-size:11px">ح${r.period}</span>
+      </div>
+    `).join('');
+  }
+
+  // Subject performance
+  const perfMap = {};
+  exams.forEach(e => {
+    if (!perfMap[e.subject]) perfMap[e.subject] = {total:0, max:0, count:0};
+    perfMap[e.subject].total += e.score;
+    perfMap[e.subject].max += e.total;
+    perfMap[e.subject].count++;
+  });
+  const barColors = ['#2e86ab','#1fa864','#d4872a','#e84855','#6938c0'];
+  const perfEl = document.getElementById('subject-performance');
+  perfEl.innerHTML = Object.entries(perfMap).map(([subj, data], i) => {
+    const pct = Math.round(data.total / data.max * 100);
+    const color = barColors[i % barColors.length];
+    return `
+      <div class="subject-bar">
+        <div class="subject-bar-label">${subj}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${pct}%;background:${color}"></div>
+        </div>
+        <div class="bar-pct" style="color:${color}">${pct}%</div>
+      </div>
+    `;
+  }).join('') || '<div class="empty-state"><p>لا توجد بيانات اختبارات</p></div>';
+
+  // Recent HW
+  const recentHW = appData.homeworks.slice(-3).reverse();
+  document.getElementById('recent-hw').innerHTML = recentHW.map(h => {
+    let badge, dot;
+    if (h.status.includes('مسلم')) { badge = 'success'; dot = '✅'; }
+    else if (h.status.includes('قيد')) { badge = 'warning'; dot = '🔄'; }
+    else { badge = 'danger'; dot = '❌'; }
+    return `
+      <div class="today-item">
+        <div class="today-subject">${h.subject} — ${h.title}</div>
+        <span class="badge ${badge}">${dot} ${h.status}</span>
+      </div>
+    `;
+  }).join('') || '<div class="empty-state"><p>لا توجد واجبات</p></div>';
+
+  // Recent Exams
+  const recentExams = appData.exams.slice(-3).reverse();
+  document.getElementById('recent-exams').innerHTML = recentExams.map(e => {
+    const pct = Math.round(e.score / e.total * 100);
+    const g = getGrade(pct);
+    return `
+      <div class="today-item">
+        <div class="today-subject">${e.subject} — ${e.type}</div>
+        <span class="grade-circle ${g.cls}" style="font-size:12px;width:auto;padding:4px 10px;border-radius:8px">${pct}%</span>
+      </div>
+    `;
+  }).join('') || '<div class="empty-state"><p>لا توجد اختبارات</p></div>';
+}
+
+// ============================================================
+// SCHEDULE
+// ============================================================
+function renderSchedule() {
+  const tbody = document.getElementById('schedule-body');
+  tbody.innerHTML = appData.schedule.map(r => {
+    if (r.period === 'break') return `
+      <tr class="break-row">
+        <td colspan="7">⏸ استراحة &nbsp; ${r.from} – ${r.to}</td>
+      </tr>`;
+    return `
+      <tr>
+        <td class="schedule-cell"><strong>${r.period}</strong></td>
+        ${['sun','mon','tue','wed','thu'].map(d => `
+          <td class="schedule-cell">
+            ${r[d] ? `<span class="schedule-subject ${getSubjectClass(r[d])}">${r[d]}</span>` : '<span style="color:#ddd">—</span>'}
+          </td>
+        `).join('')}
+        <td class="schedule-cell" style="color:var(--text-light);font-size:12px">${r.from} – ${r.to}</td>
+      </tr>`;
+  }).join('');
+}
+
+// ============================================================
+// SUBJECTS
+// ============================================================
+function renderSubjects(filter) {
+  const data = filter && filter !== 'all' ? appData.subjects.filter(s => s.subject === filter) : appData.subjects;
+  const tbody = document.getElementById('subjects-body');
+  tbody.innerHTML = data.map((s, i) => `
+    <tr>
+      <td style="color:var(--text-light);font-size:12px">${i+1}</td>
+      <td><span class="subject-badge ${getSubjectClass(s.subject)}">${s.subject}</span></td>
+      <td style="font-weight:600">${s.lesson}</td>
+      <td style="color:var(--text-light);font-size:12px">${s.unit}</td>
+      <td style="color:var(--text-light);font-size:12px">${s.teacher}</td>
+      <td>
+        ${s.file ? `<span style="color:var(--accent);font-size:12px;font-weight:600">📄 ${s.file}</span>` : '—'}
+      </td>
+      <td style="color:var(--text-light);font-size:12px">${s.note || '—'}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-light)">لا توجد دروس</td></tr>';
+
+  // Filters
+  const subjects = [...new Set(appData.subjects.map(s => s.subject))];
+  const filtersEl = document.getElementById('subject-filters');
+  filtersEl.innerHTML = `<button class="filter-btn ${!filter || filter==='all' ? 'active' : ''}" onclick="renderSubjects('all')">الكل</button>` +
+    subjects.map(s => `<button class="filter-btn ${filter===s?'active':''}" onclick="renderSubjects('${s}')">${s}</button>`).join('');
+}
+
+// ============================================================
+// HOMEWORKS
+// ============================================================
+let hwFilter = 'all';
+function filterHW(f, btn) {
+  hwFilter = f;
+  document.querySelectorAll('#sec-homeworks .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderHomeworks(f);
+}
+
+function renderHomeworks(filter) {
+  const data = filter === 'all' ? appData.homeworks : appData.homeworks.filter(h => h.status.includes(filter));
+  const tbody = document.getElementById('hw-body');
+  tbody.innerHTML = data.map((h, i) => {
+    let badge, icon;
+    if (h.status.includes('مسلم')) { badge = 'success'; icon = '✅'; }
+    else if (h.status.includes('قيد')) { badge = 'warning'; icon = '🔄'; }
+    else { badge = 'danger'; icon = '❌'; }
+    return `
+      <tr>
+        <td style="color:var(--text-light);font-size:12px">${i+1}</td>
+        <td><span class="subject-badge ${getSubjectClass(h.subject)}">${h.subject}</span></td>
+        <td style="font-weight:600;font-size:13px">${h.title}</td>
+        <td style="color:var(--text-light);font-size:12px">${h.assigned}</td>
+        <td style="font-size:12px;font-weight:600">${h.due}</td>
+        <td><span class="badge info">${h.score} درجة</span></td>
+        <td><span class="badge ${badge}">${icon} ${h.status}</span></td>
+        <td style="color:var(--text-light);font-size:12px">${h.teacherNote || '—'}</td>
+      </tr>
+    `;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-light)">لا توجد واجبات</td></tr>';
+}
+
+// ============================================================
+// EXAMS
+// ============================================================
+function filterExams(f, btn) {
+  document.querySelectorAll('#exam-filters .filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderExams(f);
+}
+
+function renderExams(filter) {
+  const types = [...new Set(appData.exams.map(e => e.type))];
+  const filtersEl = document.getElementById('exam-filters');
+  filtersEl.innerHTML = `<button class="filter-btn ${filter==='all'?'active':''}" onclick="filterExams('all',this)">الكل</button>` +
+    types.map(t => `<button class="filter-btn ${filter===t?'active':''}" onclick="filterExams('${t}',this)">${t}</button>`).join('');
+
+  const data = filter === 'all' ? appData.exams : appData.exams.filter(e => e.type === filter);
+  const tbody = document.getElementById('exams-body');
+  tbody.innerHTML = data.map((e, i) => {
+    const pct = Math.round(e.score / e.total * 100);
+    const g = getGrade(pct);
+    const color = getGradeColor(pct);
+    return `
+      <tr>
+        <td style="color:var(--text-light);font-size:12px">${i+1}</td>
+        <td><span class="subject-badge ${getSubjectClass(e.subject)}">${e.subject}</span></td>
+        <td style="font-size:12px;color:var(--text-light)">${e.type}</td>
+        <td style="font-size:12px">${e.date}</td>
+        <td style="text-align:center;font-weight:700">${e.total}</td>
+        <td style="text-align:center;font-weight:800;color:${color};font-size:15px">${e.score}</td>
+        <td>
+          <div class="pct-bar">
+            <div class="pct-track"><div class="pct-fill" style="width:${pct}%;background:${color}"></div></div>
+            <div class="pct-num" style="color:${color}">${pct}%</div>
+          </div>
+        </td>
+        <td><span class="grade-circle ${g.cls}">${g.label}</span></td>
+        <td style="color:var(--text-light);font-size:12px">${e.note || '—'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+function renderProgress() {
+  const subjects = [...new Set(appData.exams.map(e => e.subject))];
+  const colors = ['#2e86ab','#1fa864','#d4872a','#e84855','#6938c0','#0891b2'];
+
+  // Progress rings
+  const grid = document.getElementById('progress-grid');
+  grid.innerHTML = subjects.map((subj, i) => {
+    const subExams = appData.exams.filter(e => e.subject === subj);
+    const totalScore = subExams.reduce((s,e) => s + e.score, 0);
+    const totalMax = subExams.reduce((s,e) => s + e.total, 0);
+    const pct = Math.round(totalScore / totalMax * 100);
+    const color = colors[i % colors.length];
+    const r = 36, circ = 2 * Math.PI * r;
+    const offset = circ - (pct / 100) * circ;
+    return `
+      <div class="progress-card">
+        <div class="progress-ring-wrap">
+          <svg class="progress-ring" width="90" height="90" viewBox="0 0 90 90">
+            <circle class="ring-bg" cx="45" cy="45" r="${r}"/>
+            <circle class="ring-fill" cx="45" cy="45" r="${r}"
+              stroke="${color}"
+              stroke-dasharray="${circ}"
+              stroke-dashoffset="${offset}"/>
+          </svg>
+          <div class="ring-label" style="color:${color}">${pct}%</div>
+        </div>
+        <div class="progress-subject">${subj}</div>
+        <div class="progress-detail">${subExams.length} اختبار • ${totalScore}/${totalMax}</div>
+      </div>
+    `;
+  }).join('');
+
+  // Summary table
+  const summaryEl = document.getElementById('summary-body');
+  summaryEl.innerHTML = subjects.map(subj => {
+    const subExams = appData.exams.filter(e => e.subject === subj);
+    const totalScore = subExams.reduce((s,e) => s + e.score, 0);
+    const totalMax = subExams.reduce((s,e) => s + e.total, 0);
+    const pct = Math.round(totalScore / totalMax * 100);
+    const g = getGrade(pct);
+    const color = getGradeColor(pct);
+    return `
+      <tr>
+        <td><span class="subject-badge ${getSubjectClass(subj)}">${subj}</span></td>
+        <td style="text-align:center">${subExams.length}</td>
+        <td style="text-align:center;font-weight:700;color:${color}">${totalScore}</td>
+        <td style="text-align:center;color:var(--text-light)">${totalMax}</td>
+        <td>
+          <div class="pct-bar">
+            <div class="pct-track"><div class="pct-fill" style="width:${pct}%;background:${color}"></div></div>
+            <div class="pct-num" style="color:${color}">${pct}%</div>
+          </div>
+        </td>
+        <td><span class="grade-circle ${g.cls}">${g.label}</span></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ============================================================
+// EXCEL IMPORT
+// ============================================================
+function loadExcel(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('loadingOverlay').classList.add('show');
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, {type:'array'});
+
+      // بيانات الطالب
+      if (wb.SheetNames.includes('بيانات_الطالب')) {
+        const ws = wb.Sheets['بيانات_الطالب'];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+        rows.forEach(row => {
+          if (row[0] && row[1]) {
+            const label = String(row[0]);
+            const val = String(row[1]);
+            if (label.includes('اسم')) appData.student.name = val;
+            if (label.includes('مرحلة')) appData.student.grade = val;
+            if (label.includes('فصل الدراسي')) appData.student.term = val;
+            if (label.includes('مدرسة')) appData.student.school = val;
+          }
+        });
+        document.getElementById('sidebar-name').textContent = appData.student.name;
+        document.getElementById('sidebar-grade').textContent = appData.student.grade + ' • الفصل ' + appData.student.term;
+      }
+
+      // جدول الحصص
+      if (wb.SheetNames.includes('جدول_الحصص')) {
+        const ws = wb.Sheets['جدول_الحصص'];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+        const newSchedule = [];
+        for (let i = 3; i < rows.length && i < 11; i++) {
+          const r = rows[i];
+          if (!r || r.length < 2) continue;
+          const period = r[0];
+          if (String(r[8] || '').includes('استراحة') || String(period) === '') {
+            newSchedule.push({period:'break', sun:'', mon:'', tue:'', wed:'', thu:'', from:String(r[6]||''), to:String(r[7]||''), note:'استراحة'});
+          } else {
+            newSchedule.push({
+              period: period,
+              sun: String(r[1]||''), mon: String(r[2]||''), tue: String(r[3]||''),
+              wed: String(r[4]||''), thu: String(r[5]||''),
+              from: String(r[6]||''), to: String(r[7]||''), note: String(r[8]||'')
+            });
+          }
+        }
+        if (newSchedule.length > 0) appData.schedule = newSchedule;
+      }
+
+      // المواد والدروس
+      if (wb.SheetNames.includes('المواد_والدروس')) {
+        const ws = wb.Sheets['المواد_والدروس'];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        const newSubjects = [];
+        for (let i = 2; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r[0]) continue;
+          newSubjects.push({subject:String(r[0]), lesson:String(r[1]||''), unit:String(r[2]||''), grade:String(r[3]||''), teacher:String(r[4]||''), file:String(r[5]||''), note:String(r[6]||'')});
+        }
+        if (newSubjects.length > 0) appData.subjects = newSubjects;
+      }
+
+      // الواجبات
+      if (wb.SheetNames.includes('الواجبات_والمهام')) {
+        const ws = wb.Sheets['الواجبات_والمهام'];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        const newHW = [];
+        for (let i = 2; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r[0] || String(r[0]).includes('اجمالي')) continue;
+          newHW.push({subject:String(r[0]), title:String(r[1]||''), assigned:String(r[2]||''), due:String(r[3]||''), score:r[4]||0, status:String(r[5]||''), teacherNote:String(r[6]||''), studentNote:String(r[7]||'')});
+        }
+        if (newHW.length > 0) appData.homeworks = newHW;
+      }
+
+      // الاختبارات
+      if (wb.SheetNames.includes('الاختبارات_والنتائج')) {
+        const ws = wb.Sheets['الاختبارات_والنتائج'];
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        const newExams = [];
+        for (let i = 2; i < rows.length; i++) {
+          const r = rows[i];
+          if (!r[0] || String(r[0]).includes('احصاء') || String(r[0]).includes('نسبة') || String(r[0]).includes('متوسط') || String(r[0]).includes('أعلى') || String(r[0]).includes('أدنى')) continue;
+          if (typeof r[4] !== 'number') continue;
+          newExams.push({subject:String(r[0]), type:String(r[1]||''), date:String(r[2]||''), total:Number(r[3])||20, score:Number(r[4])||0, note:String(r[8]||'')});
+        }
+        if (newExams.length > 0) appData.exams = newExams;
+      }
+
+      document.getElementById('loadingOverlay').classList.remove('show');
+      showToast('✅', 'تم تحميل البيانات من Excel بنجاح!');
+      renderSection(document.querySelector('.nav-item.active')?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1] || 'dashboard');
+    } catch(err) {
+      document.getElementById('loadingOverlay').classList.remove('show');
+      showToast('❌', 'خطأ في قراءة الملف: ' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  input.value = '';
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function showToast(icon, msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = icon;
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 4000);
+}
+
+function setDate() {
+  const d = new Date();
+  const options = {weekday:'long', year:'numeric', month:'long', day:'numeric'};
+  document.getElementById('current-date').textContent = d.toLocaleDateString('ar-SA', options);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  setDate();
+  renderDashboard();
+});
+</script>
+</body>
+</html>
